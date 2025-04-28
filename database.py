@@ -167,7 +167,7 @@ def get_all_movies():
     if conn is not None:
         try:
             c = conn.cursor()
-            c.execute('SELECT movie_id, series_title FROM movies')
+            c.execute('SELECT movie_id, series_title, released_year, imdb_rating FROM movies')
             return c.fetchall()
         except Error as e:
             print(f"Error fetching movies: {e}")
@@ -210,6 +210,26 @@ def add_rating(user_id, movie_id, score):
     finally:
         conn.close()
 
+def get_user_review(user_id, movie_id):
+    """Get a user's review for a specific movie"""
+    conn = create_connection()
+    if conn is None:
+        return None
+    
+    try:
+        c = conn.cursor()
+        c.execute('''
+            SELECT review_text FROM reviews
+            WHERE user_id = ? AND movie_id = ?
+        ''', (user_id, movie_id))
+        result = c.fetchone()
+        return result[0] if result else None
+    except Error as e:
+        print(f"Error getting user review: {e}")
+        return None
+    finally:
+        conn.close()
+
 def add_review(user_id, movie_id, review_text):
     """Add a movie review"""
     conn = create_connection()
@@ -218,6 +238,11 @@ def add_review(user_id, movie_id, review_text):
     
     try:
         c = conn.cursor()
+        # First check if user already has a review
+        existing_review = get_user_review(user_id, movie_id)
+        if existing_review:
+            return False, f"You have already reviewed this movie. Your review: \n\n{existing_review}"
+            
         c.execute('''
             INSERT INTO reviews (user_id, movie_id, review_text)
             VALUES (?, ?, ?)

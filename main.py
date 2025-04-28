@@ -594,7 +594,8 @@ class MovieApp:
         
         # Insert into Treeview
         for movie in movies:
-            self.movie_tree.insert('', tk.END, values=movie)
+            movie_id, title, year, rating = movie
+            self.movie_tree.insert('', tk.END, values=(movie_id, title, year, rating))
 
     def submit_rating(self):
         """Submit a rating for the current movie"""
@@ -732,12 +733,11 @@ Gross: {movie[11]}
         # Fetch all movies from the database
         movies = database.get_all_movies()
 
-        # Filter movies based on the search query
-        filtered_movies = [movie for movie in movies if query in movie[1].lower()]
-
-        # Insert filtered movies into the Treeview
-        for movie in filtered_movies:
-            self.movie_tree.insert('', tk.END, values=movie)
+        # Filter and insert movies
+        for movie in movies:
+            movie_id, title, year, rating = movie
+            if query in title.lower():
+                self.movie_tree.insert('', tk.END, values=(movie_id, title, year, rating))
 
     def on_movie_double_click(self, event):
         """Handle double-click on a movie to show detailed information"""
