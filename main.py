@@ -236,7 +236,7 @@ class MovieApp:
 
         # Proceed with UI setup
         self.root.title("Movie Review System")
-        self.root.geometry("1200x800")
+        self.root.geometry("1800x1020")
         self.current_user = None
         self.current_user_id = None
         self.create_menu()
