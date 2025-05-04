@@ -95,11 +95,12 @@ def extract_director_and_stars(cast_text):
     director = ""
     stars = ""
     
-    if "Director:" in cast_text:
+    if cast_text and isinstance(cast_text, str):
         parts = cast_text.split(" | Stars: ")
-        director = parts[0].replace("Director: ", "").strip()
-        if len(parts) > 1:
-            stars = parts[1].strip()
+        if len(parts) > 0:
+            director = parts[0].replace("Director: ", "").strip()
+            if len(parts) > 1:
+                stars = parts[1].strip()
     
     return director, stars
 
