@@ -63,64 +63,11 @@ class CustomTooltip:
             self.tooltip_window.destroy()
             self.tooltip_window = None
 
-class ThemeConfig:
-    """Theme configuration following Material Design principles"""
-    COLORS = {
-        'primary': '#1976D2',      # Blue 700
-        'secondary': '#424242',    # Grey 800
-        'background': '#FFFFFF',   # White
-        'surface': '#F5F5F5',     # Grey 100
-        'error': '#D32F2F',       # Red 700
-        'text': '#212121',        # Grey 900
-        'text_secondary': '#757575'# Grey 600
-    }
-    
-    FONTS = {
-        'heading': ('Helvetica', 16, 'bold'),
-        'subheading': ('Helvetica', 14),
-        'body': ('Helvetica', 12),
-        'small': ('Helvetica', 10)
-    }
-    
-    @classmethod
-    def setup_theme(cls):
-        """Configure ttk styles with the theme"""
-        style = ttk.Style()
-        
-        # Configure common styles
-        style.configure('.',
-                      font=cls.FONTS['body'],
-                      background=cls.COLORS['background'])
-        
-        # Primary button style
-        style.configure('Primary.TButton',
-                      padding=(10, 5),
-                      font=cls.FONTS['body'])
-        
-        # Heading label style
-        style.configure('Heading.TLabel',
-                      font=cls.FONTS['heading'],
-                      foreground=cls.COLORS['primary'])
-        
-        # Subheading label style
-        style.configure('Subheading.TLabel',
-                      font=cls.FONTS['subheading'],
-                      foreground=cls.COLORS['secondary'])
-        
-        # Rating frame style
-        style.configure('Rating.TLabelframe',
-                      padding=10,
-                      relief='solid')
-        
-        # Scale style
-        style.configure('Rating.Horizontal.TScale',
-                      sliderthickness=20)
-
 class RegisterWindow(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
         self.title("Register")
-        self.geometry("300x250")
+        self.geometry("300x275")
         self.resizable(False, False)
         
         # Center window
@@ -290,10 +237,6 @@ class MovieApp:
         # Proceed with UI setup
         self.root.title("Movie Review System")
         self.root.geometry("1200x800")
-        ThemeConfig.setup_theme()
-        self.root.configure(bg=ThemeConfig.COLORS['background'])
-        self.root.option_add('*TLabel*font', ThemeConfig.FONTS['body'])
-        self.root.option_add('*TButton*font', ThemeConfig.FONTS['body'])
         self.current_user = None
         self.current_user_id = None
         self.create_menu()
@@ -306,13 +249,13 @@ class MovieApp:
         self.show_login()
 
     def setup_frames(self):
-        """Setup main frames with proper styling"""
+        """Setup main frames"""
         # Left frame for movie list
-        self.left_frame = ttk.Frame(self.main_container, style='Primary.TFrame')
+        self.left_frame = ttk.Frame(self.main_container)
         self.main_container.add(self.left_frame, weight=1)
 
         # Right frame for movie details
-        self.right_frame = ttk.Frame(self.main_container, style='Primary.TFrame')
+        self.right_frame = ttk.Frame(self.main_container)
         self.main_container.add(self.right_frame, weight=2)
 
     def create_menu(self):
@@ -375,7 +318,7 @@ class MovieApp:
             self.review_text.delete("1.0", tk.END)  # Clear review text
 
     def setup_movie_list(self):
-        """Setup the movie list with improved styling"""
+        """Setup the movie list"""
         # Main list container
         list_container = ttk.Frame(self.left_frame)
         list_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
@@ -385,9 +328,7 @@ class MovieApp:
         header_frame.pack(fill=tk.X, pady=(0, 10))
 
         # Title
-        ttk.Label(header_frame, 
-                 text="Movies Collection",
-                 style='Heading.TLabel').pack(side=tk.LEFT)
+        ttk.Label(header_frame, text="Movies Collection").pack(side=tk.LEFT)
 
         # Search frame
         search_frame = ttk.Frame(header_frame)
@@ -396,29 +337,18 @@ class MovieApp:
         self.search_var = tk.StringVar()
         self.search_var.trace('w', self.on_search_change)
         
-        search_entry = ttk.Entry(search_frame, 
-                               textvariable=self.search_var,
-                               width=20)
+        search_entry = ttk.Entry(search_frame, textvariable=self.search_var, width=20)
         search_entry.pack(side=tk.LEFT, padx=5)
         CustomTooltip(search_entry, text="Search movies by title")
-        
-        # Create Treeview with enhanced styling
-        style = ttk.Style()
-        style.configure('MovieList.Treeview',
-                       rowheight=30,
-                       font=ThemeConfig.FONTS['body'])
-        style.configure('MovieList.Treeview.Heading',
-                       font=ThemeConfig.FONTS['subheading'])
         
         # Create container for Treeview and scrollbar
         tree_frame = ttk.Frame(list_container)
         tree_frame.pack(fill=tk.BOTH, expand=True)
         
-        # Create horizontal scrollbar
+        # Create scrollbars
         x_scrollbar = ttk.Scrollbar(tree_frame, orient=tk.HORIZONTAL)
         x_scrollbar.pack(side=tk.BOTTOM, fill=tk.X)
         
-        # Create vertical scrollbar
         y_scrollbar = ttk.Scrollbar(tree_frame, orient=tk.VERTICAL)
         y_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
@@ -427,7 +357,6 @@ class MovieApp:
                                       columns=('ID', 'Title', 'Year', 'Rating'),
                                       show='headings',
                                       selectmode='browse',
-                                      style='MovieList.Treeview',
                                       xscrollcommand=x_scrollbar.set,
                                       yscrollcommand=y_scrollbar.set)
         
@@ -451,14 +380,6 @@ class MovieApp:
         # Bind events
         self.movie_tree.bind('<<TreeviewSelect>>', self.on_select_movie)
         self.movie_tree.bind('<Double-1>', self.on_movie_double_click)
-
-        # Configure tags for rating-based colors
-        self.movie_tree.tag_configure('high_rating', 
-                                    background='#E8F5E9')  # Green 50
-        self.movie_tree.tag_configure('medium_rating', 
-                                    background='#FFF3E0')  # Orange 50
-        self.movie_tree.tag_configure('low_rating', 
-                                    background='#FFEBEE')  # Red 50
 
     def setup_movie_details(self):
         """Setup the movie details display area"""
