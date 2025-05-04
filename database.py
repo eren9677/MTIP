@@ -19,6 +19,8 @@ def create_tables(conn):
         c = conn.cursor()
         
         # Create movies table
+
+        # Create movies table
         c.execute('''
             CREATE TABLE IF NOT EXISTS movies (
                 movie_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,9 +34,27 @@ def create_tables(conn):
                 director TEXT,
                 stars TEXT,
                 no_of_votes INTEGER,
-                gross TEXT
+                gross TEXT,
+                UNIQUE(series_title, released_year, director)
             )
         ''')
+
+        # c.execute('''
+        #     CREATE TABLE IF NOT EXISTS movies (
+        #         movie_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        #         series_title TEXT NOT NULL,
+        #         released_year INTEGER,
+        #         certificate TEXT,
+        #         runtime TEXT,
+        #         genre TEXT,
+        #         imdb_rating REAL,
+        #         overview TEXT,
+        #         director TEXT,
+        #         stars TEXT,
+        #         no_of_votes INTEGER,
+        #         gross TEXT
+        #     )
+        # ''')
         
         # Create users table
         c.execute('''
@@ -142,18 +162,32 @@ def load_movies_from_csv(conn, csv_file):
             # Parse votes and gross
             votes, gross = parse_votes_and_gross(row['Info'])
             
-            # Insert into database
+            
             c.execute('''
-                INSERT INTO movies (
-                    series_title, released_year, certificate, runtime,
-                    genre, imdb_rating, overview, director, stars,
-                    no_of_votes, gross
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                title, year, row['Certificate'], row['Duration'],
-                row['Genre'], row['Rate'], row['Description'],
-                director, stars, votes, gross
-            ))
+                    INSERT OR IGNORE INTO movies (
+                        series_title, released_year, certificate, runtime,
+                        genre, imdb_rating, overview, director, stars,
+                        no_of_votes, gross
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (
+                    title, year, row['Certificate'], row['Duration'],
+                    row['Genre'], row['Rate'], row['Description'],
+                    director, stars, votes, gross
+                ))
+
+
+            # # Insert into database
+            # c.execute('''
+            #     INSERT INTO movies (
+            #         series_title, released_year, certificate, runtime,
+            #         genre, imdb_rating, overview, director, stars,
+            #         no_of_votes, gross
+            #     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            # ''', (
+            #     title, year, row['Certificate'], row['Duration'],
+            #     row['Genre'], row['Rate'], row['Description'],
+            #     director, stars, votes, gross
+            # ))
         
         conn.commit()
         print(f"Successfully loaded {len(df)} movies into database")
