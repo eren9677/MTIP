@@ -8,6 +8,9 @@ def create_connection():
     conn = None
     try:
         conn = sqlite3.connect('movie_review.db')
+        # Enable foreign keys and set text factory to str to support Turkish characters
+        conn.execute("PRAGMA foreign_keys = ON")
+        conn.text_factory = str
         return conn
     except Error as e:
         print(f"Error connecting to database: {e}")

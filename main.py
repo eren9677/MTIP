@@ -3,7 +3,7 @@ from tkinter import ttk
 from tkinter import messagebox
 import database
 import auth
-
+import sentiment  # Add this import for
 class ErrorHandler:
     """Centralized error handling for the application"""
     def __init__(self, root):
@@ -554,13 +554,22 @@ class MovieApp:
                 raise ValueError("Please select a movie to review")
 
             review_text = self.review_text.get("1.0", tk.END).strip()
+            if not review_text:
+                raise ValueError("Review cannot be empty")
             if len(review_text) < 20:
                 raise ValueError("Review must be at least 20 characters long")
 
+            # Remove ASCII encoding/decoding to support Turkish characters
             movie_id = self.movie_tree.item(selected_items[0])['values'][0]
             success, message = database.add_review(self.current_user_id, movie_id, review_text)
             if success:
-                self.error_handler.show_info("Success", message)
+                # Predict sentiment after successful review submission
+                try:
+                    sentiment_label = sentiment.predict_sentiment(review_text)
+                    emoji = "😀" if sentiment_label == "POSITIVE" else "😐" if sentiment_label == "NEUTRAL" else "😞"
+                    self.error_handler.show_info("Success", f"{message}\nSentiment: {sentiment_label} {emoji}")
+                except Exception as e:
+                    self.error_handler.show_warning("Warning", f"{message}\nSentiment analysis failed: {str(e)}")
                 self.review_text.delete("1.0", tk.END)
                 self.refresh_movie_details()
             else:
@@ -620,16 +629,29 @@ Gross: {movie[11]}
 """
             self.details_text.insert(tk.END, details)
             
-            # Get and display reviews
+            # Get and display reviews with sentiment emojis
             reviews = database.get_movie_reviews(movie_id)
             if reviews:
                 for review in reviews:
-                    review_text = f"""
-{review[2]} - {review[4]}:
+                    try:
+                        # Predict sentiment for each review
+                        sentiment_label = sentiment.predict_sentiment(review[3])
+                        emoji = "😀" if sentiment_label == "POSITIVE" else "😐" if sentiment_label == "NEUTRAL" else "😞"
+                        # Format the review with proper alignment
+                        review_text = f"""
+{review[2]} - {review[4]} {emoji}
 {review[3]}
 ----------------------------------------
 """
-                    self.reviews_text.insert(tk.END, review_text)
+                        self.reviews_text.insert(tk.END, review_text)
+                    except Exception as e:
+                        # Handle sentiment analysis errors gracefully
+                        review_text = f"""
+{review[2]} - {review[4]} (Sentiment analysis failed)
+{review[3]}
+----------------------------------------
+"""
+                        self.reviews_text.insert(tk.END, review_text)
             else:
                 self.reviews_text.insert(tk.END, "\nNo reviews yet.")
             
